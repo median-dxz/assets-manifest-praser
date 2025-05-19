@@ -8,7 +8,7 @@ export class ManifestFilePraseError extends Error {
 export class ManifestFileVersionError extends Error {
   constructor(version: string, targetVersion: string) {
     super(
-      `Unsupported package manifest version: ${version}. Expected version: ${targetVersion}`,
+      `Unsupported package manifest version: ${version} Expected version: ${targetVersion}`,
     );
     this.name = "VersionError";
   }

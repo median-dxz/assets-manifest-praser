@@ -13,7 +13,7 @@ export async function parseFiles(
   const files = fs.readdirSync(inputDir, { withFileTypes: true });
 
   await Promise.all(
-    files.map(async (file) => {
+    files.map(async (file, index) => {
       const inputPath = path.join(inputDir, file.name);
       const outputPath = path.join(outputDir, file.name);
 
@@ -27,6 +27,7 @@ export async function parseFiles(
             JSON.stringify(manifest, null, 2),
             "utf-8",
           );
+          consola.success(`Processed file: ${file.name} successfully.`);
         } catch (error) {
           consola.error(`Error processing file ${file.name}:`, error);
         }

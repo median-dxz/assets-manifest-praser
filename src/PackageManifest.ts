@@ -46,15 +46,19 @@ export async function prasePackageManifest(
     Omit<PraseOptions, "fileVersion"> & { fileVersion: string }
   >,
 ) {
-  const praseOptions = {
+  const mergedOptions = {
     ...DefaultPraseOptions,
     ...options,
   };
 
-  const { fileVersion, littleEdian } = praseOptions;
+  const { fileVersion, littleEdian } = mergedOptions;
 
   const buffer = await readFile(filename);
-  const reader = new BytesReader(new Uint8Array(buffer), options, "manifest");
+  const reader = new BytesReader(
+    new Uint8Array(buffer),
+    mergedOptions,
+    "manifest",
+  );
 
   const r = {} as PackageManifest;
 
