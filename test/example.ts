@@ -2,8 +2,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { LengthType, prasePackageManifest } from "../src/index.js";
 
-const manifestPath = `example\\ManifestFiles`;
-const file1 = `PackageManifest.bytes`;
+const [manifestPath, file] = process.argv.slice(2);
 
 const dump = async (file: string) => {
   const inputPath = path.join(manifestPath, file);
@@ -15,7 +14,7 @@ const dump = async (file: string) => {
   await fs.writeFile(outputPath, JSON.stringify(manifest, null, 2));
 };
 
-await dump(file1);
+await dump(file);
 
 // hash algorithm: md5
 // little endian: true

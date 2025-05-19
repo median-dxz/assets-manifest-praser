@@ -8,7 +8,7 @@
     "format:prettier": "prettier --write src",
     "lint:eslint": "pnpm lint:tsc && eslint --ext .ts src",
     "lint:tsc": "tsc --noEmit",
-    "build": "tsc --project tsconfig.json --outDir dist",
+    "build": "rimraf dist && tsc",
     "prepack": "pnpm run build",
     "prepare": "husky"
   },
@@ -18,10 +18,10 @@
   ],
   "main": "./src/index.ts",
   "types": "./dist/index.d.ts",
-  "bin": "./dist/cli.mjs",
+  "bin": "./dist/cli.js",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     }
   },
@@ -29,7 +29,6 @@
     "yooasset",
     "cli"
   ],
-  "author": "median-dxz",
   "repository": {
     "url": "https://github.com/median-dxz/assets-manifest-praser"
   },
@@ -49,6 +48,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.0.0",
     "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
     "tsx": "^4.19.4",
     "typescript-eslint": "^8.32.1"
   },

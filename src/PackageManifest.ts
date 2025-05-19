@@ -5,8 +5,8 @@ import type {
   PackageManifest,
   PackageAssetInfo,
   PackageBundleInfo,
-} from "./types.js";
-import { ManifestFilePraseError, ManifestFileVersionError } from "errors.js";
+} from "./types";
+import { ManifestFilePraseError, ManifestFileVersionError } from "./errors.js";
 
 export const ManifestFileSigns = {
   "1.5.2": new Uint8Array([0x4f, 0x4f, 0x59, 0x00]),
