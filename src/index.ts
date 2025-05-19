@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import { prasePackageManifest } from "./PackageManifest.js";
 import consola from "consola";
@@ -10,19 +10,24 @@ export async function parseFiles(
   outputDir: string,
   version: string,
 ) {
-  const files = fs.readdirSync(inputDir, { withFileTypes: true });
+  const files = await fs.readdir(inputDir, { withFileTypes: true });
 
   await Promise.all(
-    files.map(async (file, index) => {
-      const inputPath = path.join(inputDir, file.name);
-      const outputPath = path.join(outputDir, file.name);
-
+    files.map(async (file) => {
       if (file.isFile() && file.name.endsWith(".bytes")) {
+        const inputPath = path.join(inputDir, file.name);
+
+        const outputPath = path.join(
+          outputDir,
+          path.basename(file.name, ".bytes") + ".json",
+        );
+
         try {
           const manifest = await prasePackageManifest(inputPath, {
             fileVersion: version,
           });
-          fs.writeFileSync(
+          await fs.mkdir(outputDir, { recursive: true });
+          await fs.writeFile(
             outputPath,
             JSON.stringify(manifest, null, 2),
             "utf-8",
