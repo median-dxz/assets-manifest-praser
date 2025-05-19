@@ -1,44 +1,45 @@
 import path from "node:path";
+import { consola } from "consola";
 
 import { defineCommand, runMain } from "citty";
-import { copyStructureAndParse } from "./index.js";
+import { parseFiles } from "./index.js";
 
 const main = defineCommand({
   meta: {
-    name: "yooasset-cli",
+    name: "@sea/assets-manifest-praser cli",
     description: "解析 YooAsset 的 manifest 文件",
-    version: "1.0.0",
+    version: "0.1.0",
   },
   args: {
     input: {
-      type: "string",
+      type: "positional",
       description: "包含 manifest 文件的文件夹路径",
       required: true,
     },
     version: {
       type: "string",
-      description: "manifest 文件的版本号",
-      required: true,
+      description: "manifest 文件的版本号, 默认为1.5.2 (目前只支持1.5.2)",
+      default: "1.5.2",
     },
     output: {
       type: "string",
-      description: "输出目录",
-      required: true,
+      description: "输出目录, 默认为当前目录",
+      default: ".",
     },
   },
-  run({ args }) {
+  async run({ args }) {
     const inputDir = path.resolve(args.input);
     const outputDir = path.resolve(args.output);
     const version = args.version;
 
     try {
-      copyStructureAndParse(inputDir, outputDir, version);
-      console.log("解析完成，结果已输出到：", outputDir);
+      await parseFiles(inputDir, outputDir, version);
+      consola.log("解析完成，结果已输出到：", outputDir);
     } catch (error) {
-      console.error("发生错误：", (error as Error).message);
+      consola.error("发生错误：", (error as Error).message);
       process.exit(1);
     }
   },
 });
 
-runMain(main);
+void runMain(main);

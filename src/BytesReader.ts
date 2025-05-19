@@ -1,40 +1,4 @@
-class KMP {
-  prefixTable: Array<number>;
-  constructor(public pattern: Uint8Array) {
-    const table = Array(pattern.length).fill(0);
-
-    for (let [i, j] = [1, 0]; i < pattern.length; i++) {
-      while (j > 0 && pattern[i] !== pattern[j]) {
-        j = table[j - 1];
-      }
-      if (pattern[i] === pattern[j]) {
-        j++;
-      }
-      table[i] = j;
-    }
-
-    this.prefixTable = table;
-  }
-
-  search(source: Uint8Array, start: number = 0) {
-    const patternLength = this.pattern.length;
-    const textLength = source.length;
-
-    for (let [i, j] = [start, 0]; i < textLength; i++) {
-      while (j > 0 && source[i] !== this.pattern[j]) {
-        j = this.prefixTable[j - 1];
-      }
-      if (source[i] === this.pattern[j]) {
-        j++;
-      }
-      if (j === patternLength) {
-        return i - j + 1;
-      }
-    }
-    return -1;
-  }
-}
-
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 function cmp(a: Uint8Array, b: Uint8Array) {
   if (a.length !== b.length) return false;
   return a.every((v, i) => v === b[i]);
@@ -110,7 +74,7 @@ export class BytesReader {
       lengthType?: LengthType;
       littleEdian?: boolean;
     },
-    public _tag = ""
+    public _tag = "",
   ) {
     options?.lengthType && (this.lengthType = options.lengthType);
     options?.littleEdian && (this.littleEdian = options.littleEdian);
@@ -122,7 +86,7 @@ export class BytesReader {
       console.log(
         `${this._tag ? this._tag + ":" : ""} ${_tag} -> ${
           this.offset
-        } + ${length}`
+        } + ${length}`,
       );
     this.offset += length;
   }
@@ -140,7 +104,7 @@ export class BytesReader {
     } else if (length === undefined) {
       slice = this.data.slice(this.offset);
       console.log(
-        `${this._tag}: ${this.offset} -> ${this.data.length} read to end`
+        `${this._tag}: ${this.offset} -> ${this.data.length} read to end`,
       );
       this.offset = this.data.length;
     }
@@ -256,7 +220,7 @@ export type BytesStructSchema = Array<
 type StringTuple = [
   "string",
   string,
-  Pick<BundleOptions, "withLength" | "lengthType">?
+  Pick<BundleOptions, "withLength" | "lengthType">?,
 ];
 
 type NumberTuple = [
@@ -272,7 +236,7 @@ type NumberTuple = [
     | "double"
   ),
   number,
-  Pick<BundleOptions, "littleEndian">?
+  Pick<BundleOptions, "littleEndian">?,
 ];
 
 export interface BundleOptions {
@@ -321,7 +285,6 @@ export function bundleBytesStruct(schema: BytesStructSchema, _tag = "") {
       if (v instanceof Uint8Array) {
         return v;
       } else if (Array.isArray(v) && typeof v[0] === "string") {
-        // @ts-ignore
         const [type, value, options, _value_tag = ""] = v;
 
         switch (type) {
@@ -334,7 +297,6 @@ export function bundleBytesStruct(schema: BytesStructSchema, _tag = "") {
           case "ulong":
           case "float":
           case "double":
-          case "int":
             return writer[type](value, options?.littleEndian);
 
           case "string": {

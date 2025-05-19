@@ -1,76 +1,82 @@
-import { readFile } from "fs/promises";
-import { BytesReader, LengthType as LengthTypeEnum } from "./utils.js";
+import { readFile } from "node:fs/promises";
+import { BytesReader } from "./BytesReader.js";
 
-export interface PackageManifest {
-  fileVersion: string;
-  enableAddressable: boolean;
-  locationToLower: boolean;
-  includeAssetGUID: boolean;
-  outputNameType: OutputNameType;
-  packageName: string;
-  packageVersion: string;
-  packageAssetCount: number;
-  packageAssetInfos: PackageAssetInfo[];
-  packageBundleCount: number;
-  packageBundleInfos: PackageBundleInfo[];
+import type {
+  PackageManifest,
+  PackageAssetInfo,
+  PackageBundleInfo,
+} from "./types.js";
+import { ManifestFilePraseError, ManifestFileVersionError } from "errors.js";
+
+export const ManifestFileSigns = {
+  "1.5.2": new Uint8Array([0x4f, 0x4f, 0x59, 0x00]),
+};
+
+export enum LengthType {
+  Byte,
+  Uint16,
+  Uint32,
 }
 
-export interface PackageAssetInfo {
-  assetPath: string;
-  bundleID: number;
-  dependIDs: number[];
+export interface PraseOptions {
+  littleEdian: boolean;
+  lengthType: LengthType;
+  fileVersion: keyof typeof ManifestFileSigns;
 }
 
-export interface PackageBundleInfo {
-  bundleName: string;
-  unityCRC: number;
-  fileHash: string;
-  fileCRC: string;
-  fileSize: number;
-  isRawFile: boolean;
-  loadMethod: number; // enum
-  referenceIDs: number[];
-}
+const DefaultPraseOptions: PraseOptions = {
+  littleEdian: true,
+  lengthType: LengthType.Uint16,
+  fileVersion: "1.5.2",
+};
 
-export enum OutputNameType {
-  Type_1 = 1,
-  Type_4 = 4,
-}
+/**
+ * @param filename
+ * @param {PraseOptions} options
+ * @default options - {
+ *  littleEdian: true,
+ *  lengthType: LengthType.Uint16,
+ *  fileVersion: "1.5.2"
+ * }
+ * @returns
+ */
+export async function prasePackageManifest(
+  filename: string,
+  options?: Partial<
+    Omit<PraseOptions, "fileVersion"> & { fileVersion: string }
+  >,
+) {
+  const praseOptions = {
+    ...DefaultPraseOptions,
+    ...options,
+  };
 
-class PrasePackageManifestError extends Error {
-  constructor(step: string) {
-    super(`Failed to parse package manifest at step: ${step}`);
-    this.name = "PrasePackageManifestError";
-  }
-}
+  const { fileVersion, littleEdian } = praseOptions;
 
-const ManifestFileSign = new Uint8Array([0x4f, 0x4f, 0x59, 0x00]);
-
-const LittleEdian = true;
-const FileVersion = "1.5.2";
-const LengthType = LengthTypeEnum.Uint16;
-
-export async function prasePackageManifest(filename: string) {
   const buffer = await readFile(filename);
-  const reader = new BytesReader(
-    new Uint8Array(buffer),
-    { lengthType: LengthType, littleEdian: LittleEdian },
-    "manifest"
-  );
+  const reader = new BytesReader(new Uint8Array(buffer), options, "manifest");
 
   const r = {} as PackageManifest;
 
-  const signReader = new BytesReader(ManifestFileSign, {
-    littleEdian: LittleEdian,
-  });
+  if (!Object.keys(ManifestFileSigns).includes(fileVersion)) {
+    throw new ManifestFilePraseError("unsupported file version");
+  }
+
+  const signReader = new BytesReader(
+    ManifestFileSigns[fileVersion as keyof typeof ManifestFileSigns],
+    {
+      littleEdian,
+    },
+  );
 
   if (reader.uint() !== signReader.uint()) {
-    throw new PrasePackageManifestError("check sign");
+    throw new ManifestFilePraseError("check sign failed");
   }
 
   r.fileVersion = reader.text();
-  if (r.fileVersion !== FileVersion) {
-    throw new PrasePackageManifestError("check file version");
+
+  if (r.fileVersion !== fileVersion) {
+    throw new ManifestFileVersionError(r.fileVersion, fileVersion);
   }
 
   r.enableAddressable = reader.boolean();
@@ -82,8 +88,8 @@ export async function prasePackageManifest(filename: string) {
   r.packageVersion = reader.text();
 
   if (r.enableAddressable && r.locationToLower) {
-    throw new PrasePackageManifestError(
-      "check enableAddressable & locationToLower"
+    throw new ManifestFilePraseError(
+      "check enableAddressable & locationToLower failed",
     );
   }
 

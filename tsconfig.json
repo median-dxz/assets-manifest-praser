@@ -6,6 +6,7 @@
     "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
     "rootDir": "src",
     "baseUrl": "./src/",
     "noEmit": true,
