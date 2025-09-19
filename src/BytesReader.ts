@@ -277,7 +277,7 @@ export function bundleBytesStruct(schema: BytesStructSchema, _tag = "") {
         return writer.byte(v ? 1 : 0);
       }
       if (typeof v === "string") {
-        bundleStringWithLength(v, GlobalLengthType.value);
+        return bundleStringWithLength(v, GlobalLengthType.value);
       }
       if (typeof v === "number") {
         return writer.int(v);
